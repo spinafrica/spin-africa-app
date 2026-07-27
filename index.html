@@ -415,98 +415,103 @@
         }
 
         // ============================================================
-        // SPIN WHEEL - FIXED
+        // SPIN WHEEL - THE CORRECTED LOGIC
         // ============================================================
-        function spinWheel() {
-            if (isSpinning || hasClaimed) return;
+        
+function spinWheel() {
+    if (isSpinning || hasClaimed) return;
 
-            stopIdleSpin();
+    stopIdleSpin();
 
-            // 1. SELECT THE PRIZE FIRST AND STORE IT
-            const selected = selectPrize();
-            currentPrize = selected; // Store the ENTIRE prize object
+    // 1. SELECT THE PRIZE AND STORE IT IN A LOCAL VARIABLE
+    const selectedPrize = selectPrize();
 
-            // 2. CALCULATE TARGET ROTATION
-            const segIndex = PRIZES.findIndex(p => p.label === selected.label);
-            const segAngle = (2 * Math.PI) / PRIZES.length;
-            const targetAngle = segIndex * segAngle + segAngle / 2;
-            const extraSpins = 5 + Math.random() * 4;
-            const targetRotation = currentRotation + extraSpins * 2 * Math.PI +
-                (targetAngle - (currentRotation % (2 * Math.PI)));
+    // 2. CALCULATE TARGET ROTATION
+    const segIndex = PRIZES.findIndex(p => p.label === selectedPrize.label);
+    const segAngle = (2 * Math.PI) / PRIZES.length;
+    const targetAngle = segIndex * segAngle + segAngle / 2;
+    const extraSpins = 5 + Math.random() * 4;
+    const targetRotation = currentRotation + extraSpins * 2 * Math.PI +
+        (targetAngle - (currentRotation % (2 * Math.PI)));
 
-            isSpinning = true;
-            spinBtn.disabled = true;
-            spinBtn.innerHTML = '🔄 Spinning...';
-            resultBox.classList.add('hidden');
-            claimedBox.classList.add('hidden');
-            statusText.innerHTML = '<i class="fas fa-circle"></i> Spinning...';
+    isSpinning = true;
+    spinBtn.disabled = true;
+    spinBtn.innerHTML = '🔄 Spinning...';
+    resultBox.classList.add('hidden');
+    claimedBox.classList.add('hidden');
+    statusText.innerHTML = '<i class="fas fa-circle"></i> Spinning...';
 
-            const duration = 4000 + Math.random() * 1500;
-            const startTime = Date.now();
-            const startRotation = currentRotation;
+    const duration = 4000 + Math.random() * 1500;
+    const startTime = Date.now();
+    const startRotation = currentRotation;
 
-            if (animationId) {
-                cancelAnimationFrame(animationId);
-                animationId = null;
+    if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+    }
+
+    function animate() {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const rotation = startRotation + (targetRotation - startRotation) * eased;
+
+        drawWheel(rotation);
+        currentRotation = rotation;
+
+        if (progress < 1) {
+            animationId = requestAnimationFrame(animate);
+        } else {
+            // 3. SPIN COMPLETE - USE THE LOCAL 'selectedPrize' VARIABLE
+            isSpinning = false;
+            spinBtn.disabled = false;
+            spinBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Spin Now';
+
+            // IMPORTANT: Update the global currentPrize with the selected one
+            currentPrize = selectedPrize;
+
+            // 4. UPDATE UI WITH THE CORRECT PRIZE
+            const prizeLabel = selectedPrize.label;
+            const prizeEmoji = selectedPrize.emoji;
+
+            // Update all display elements
+            prizeBadge.textContent = `${prizeEmoji} ${prizeLabel}`;
+            resultTitle.textContent = prizeLabel;
+
+            // Status message
+            if (prizeLabel === 'Better Luck') {
+                statusText.innerHTML = '<i class="fas fa-circle"></i> Better Luck Next Time!';
+            } else {
+                statusText.innerHTML = `<i class="fas fa-circle"></i> You won: ${prizeLabel}! 🎉`;
             }
 
-            function animate() {
-                const elapsed = Date.now() - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                const eased = 1 - Math.pow(1 - progress, 3);
-                const rotation = startRotation + (targetRotation - startRotation) * eased;
+            resultBox.classList.remove('hidden');
 
-                drawWheel(rotation);
-                currentRotation = rotation;
-
-                if (progress < 1) {
-                    animationId = requestAnimationFrame(animate);
-                } else {
-                    // 3. SPIN COMPLETE - USE THE STORED PRIZE
-                    isSpinning = false;
-                    spinBtn.disabled = false;
-                    spinBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Spin Now';
-
-                    // 4. UPDATE UI WITH THE CORRECT PRIZE
-                    const prizeLabel = selected.label;
-                    const prizeEmoji = selected.emoji;
-
-                    prizeBadge.textContent = `${prizeEmoji} ${prizeLabel}`;
-                    resultTitle.textContent = prizeLabel;
-
-                    if (prizeLabel === 'Better Luck') {
-                        statusText.innerHTML = '<i class="fas fa-circle"></i> Better Luck Next Time!';
-                    } else {
-                        statusText.innerHTML = `<i class="fas fa-circle"></i> You won: ${prizeLabel}! 🎉`;
+            // Auto-fill saved number
+            try {
+                const saved = localStorage.getItem('stadium_gate_whatsapp');
+                if (saved) {
+                    const match = saved.match(/^(\+\d+)(\d+)$/);
+                    if (match) {
+                        customerPhone.value = match[2];
                     }
-
-                    resultBox.classList.remove('hidden');
-
-                    // Auto-fill saved number
-                    try {
-                        const saved = localStorage.getItem('stadium_gate_whatsapp');
-                        if (saved) {
-                            const match = saved.match(/^(\+\d+)(\d+)$/);
-                            if (match) {
-                                customerPhone.value = match[2];
-                            }
-                        }
-                    } catch (e) {}
-
-                    // Save spin to Supabase
-                    saveSpin(selected);
-
-                    // Restart idle spin after 30 seconds
-                    setTimeout(() => {
-                        if (!isSpinning && !hasClaimed && !resultBox.classList.contains('hidden')) {
-                            startIdleSpin();
-                        }
-                    }, 30000);
                 }
-            }
+            } catch (e) {}
 
-            animate();
+            // Save spin to Supabase
+            saveSpin(selectedPrize);
+
+            // Restart idle spin after 30 seconds
+            setTimeout(() => {
+                if (!isSpinning && !hasClaimed && !resultBox.classList.contains('hidden')) {
+                    startIdleSpin();
+                }
+            }, 30000);
         }
+    }
+
+    animate();
+}
 
         // ============================================================
         // SAVE SPIN TO SUPABASE
