@@ -712,7 +712,6 @@
     // ============================================
     async function loadStore() {
       try {
-        // Get the store slug from the URL
         const pathParts = window.location.pathname.split('/');
         const slug = pathParts[pathParts.length - 1] || 'stadium-gate';
 
@@ -730,13 +729,11 @@
 
         if (data && data.length > 0) {
           storeData = data[0];
-          // Update the store info display
           storeInfo.innerHTML = `
             <div class="store-name">🏛️ ${storeData.name}</div>
             <div class="store-location"><i class="fas fa-map-pin"></i> ${storeData.location}</div>
           `;
         } else {
-          // Fallback if store not found
           storeInfo.innerHTML = `
             <div class="store-name">🏛️ Stadium Gate Shopping Mall</div>
             <div class="store-location"><i class="fas fa-map-pin"></i> Ho, Ghana</div>
@@ -744,7 +741,6 @@
         }
       } catch (error) {
         console.error('Error loading store:', error);
-        // Fallback
         storeInfo.innerHTML = `
           <div class="store-name">🏛️ Stadium Gate Shopping Mall</div>
           <div class="store-location"><i class="fas fa-map-pin"></i> Ho, Ghana</div>
@@ -753,7 +749,7 @@
     }
 
     // ============================================
-    // FEATURE 1: REMEMBER ME
+    // REMEMBER ME
     // ============================================
     function loadSavedWhatsApp() {
       try {
@@ -770,7 +766,7 @@
     }
 
     // ============================================
-    // FEATURE 3: DETECT COUNTRY CODE
+    // DETECT COUNTRY CODE
     // ============================================
     function detectCountryCode() {
       let code = '+233';
@@ -785,7 +781,7 @@
     }
 
     // ============================================
-    // DRAW WHEEL - CLEAN, NO ICONS ON SEGMENTS
+    // DRAW WHEEL
     // ============================================
     function drawWheel(rotation) {
       const w = canvas.width, h = canvas.height;
@@ -839,7 +835,6 @@
         }
       }
 
-      // Center circle
       ctx.beginPath();
       ctx.arc(cx, cy, radius * 0.13, 0, 2 * Math.PI);
       ctx.fillStyle = '#FDF8F0';
@@ -896,16 +891,18 @@
     }
 
     // ============================================
-    // SPIN FUNCTION
+    // SPIN FUNCTION - FIXED
     // ============================================
     function spinWheel() {
       if (isSpinning || hasClaimed) return;
 
       stopIdleSpin();
 
+      // STEP 1: Select the prize FIRST
       const selected = selectPrize();
       currentPrize = selected;
 
+      // STEP 2: Calculate where the wheel should stop
       const segIndex = PRIZES.findIndex(p => p.label === selected.label);
       const segAngle = (2 * Math.PI) / PRIZES.length;
 
@@ -942,16 +939,29 @@
         if (progress < 1) {
           animationId = requestAnimationFrame(animate);
         } else {
+          // STEP 3: Spin complete - use the SAME selected prize
           isSpinning = false;
           spinBtn.disabled = false;
           spinBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Spin Now';
           spinCount++;
 
-          prizeBadge.textContent = `${selected.emoji} ${selected.label}`;
-          resultTitle.textContent = selected.label;
-          resultBox.classList.remove('hidden');
-          statusText.innerHTML = '<i class="fas fa-circle"></i> You won! 🎉';
+          // STEP 4: Display the prize that was actually won
+          const prizeLabel = currentPrize.label;
+          const prizeEmoji = currentPrize.emoji;
 
+          prizeBadge.textContent = `${prizeEmoji} ${prizeLabel}`;
+          resultTitle.textContent = prizeLabel;
+
+          // STEP 5: Set the status message based on the prize
+          if (prizeLabel === 'Better Luck') {
+            statusText.innerHTML = '<i class="fas fa-circle"></i> Better Luck Next Time!';
+          } else {
+            statusText.innerHTML = `<i class="fas fa-circle"></i> You won: ${prizeLabel}! 🎉`;
+          }
+
+          resultBox.classList.remove('hidden');
+
+          // Auto-fill saved number
           try {
             const saved = localStorage.getItem('stadium_gate_whatsapp');
             if (saved) {
@@ -962,6 +972,10 @@
             }
           } catch (e) {}
 
+          // Save spin to Supabase
+          saveSpin(currentPrize);
+
+          // Restart idle spin after 30 seconds
           setTimeout(() => {
             if (!isSpinning && !hasClaimed && !resultBox.classList.contains('hidden')) {
               startIdleSpin();
@@ -974,7 +988,46 @@
     }
 
     // ============================================
-    // SUBMIT LEAD
+    // SAVE SPIN TO SUPABASE
+    // ============================================
+    async function saveSpin(prize) {
+      try {
+        const storeSlug = window.location.pathname.split('/').pop() || 'stadium-gate';
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/stores?slug=eq.${storeSlug}`, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          }
+        });
+
+        const stores = await response.json();
+        if (!stores || stores.length === 0) return;
+
+        const storeId = stores[0].id;
+
+        await fetch(`${SUPABASE_URL}/rest/v1/spins`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({
+            store_id: storeId,
+            prize_won: prize.label,
+            is_win: prize.label !== 'Better Luck'
+          })
+        });
+
+        console.log('✅ Spin saved to Supabase:', prize.label);
+      } catch (error) {
+        console.error('Error saving spin:', error);
+      }
+    }
+
+    // ============================================
+    // SUBMIT LEAD - FIXED
     // ============================================
     async function submitLead() {
       const phone = customerPhone.value.trim();
@@ -987,6 +1040,12 @@
 
       if (phone.length < 6) {
         alert('📱 Please enter a valid WhatsApp number (e.g., 24 123 4567)');
+        return;
+      }
+
+      // CRITICAL: Use the SAME prize that was won
+      if (!currentPrize) {
+        alert('⚠️ Please spin the wheel first!');
         return;
       }
 
@@ -1006,10 +1065,12 @@
       stopIdleSpin();
 
       const storeName = storeData ? storeData.name : 'Stadium Gate Shopping Mall';
-      const message =
-        `🎉 Congratulations ${name}!\n\nYou won: ${currentPrize.label}\nYour code: ${code}\n\n✅ Show this at checkout.\n\n🏛️ ${storeName}\n📍 Ho, Ghana`;
+      const prizeWon = currentPrize.label;
 
-      claimedMessage.textContent = `🎉 ${name}, you won ${currentPrize.label}!`;
+      const message =
+        `🎉 Congratulations ${name}!\n\nYou won: ${prizeWon}\nYour code: ${code}\n\n✅ Show this at checkout.\n\n🏛️ ${storeName}\n📍 Ho, Ghana`;
+
+      claimedMessage.textContent = `🎉 ${name}, you won ${prizeWon}!`;
 
       const waLink =
         `https://wa.me/${fullNumber.replace('+', '')}?text=${encodeURIComponent(message)}`;
@@ -1017,7 +1078,7 @@
       whatsappStatus.textContent = '📱 Opening WhatsApp with your code...';
       whatsappStatus.style.display = 'block';
 
-      // Save to Supabase
+      // Save lead to Supabase
       try {
         if (storeData) {
           await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
@@ -1032,7 +1093,7 @@
               store_id: storeData.id,
               name: name,
               whatsapp: fullNumber,
-              prize_won: currentPrize.label,
+              prize_won: prizeWon,
               discount_code: code,
               is_redeemed: false
             })
@@ -1056,7 +1117,7 @@
         }
       }, 2000);
 
-      alert(`🎉 ${name}!\n\nYou won: ${currentPrize.label}\nCode: ${code}\n\n📱 WhatsApp opening with your code...`);
+      alert(`🎉 ${name}!\n\nYou won: ${prizeWon}\nCode: ${code}\n\n📱 WhatsApp opening with your code...`);
     }
 
     // ============================================
