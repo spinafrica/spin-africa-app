@@ -1,939 +1,586 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-    <title>🎡 Spin Africa - Stadium Gate</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            background: #0D0D0D;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 12px;
-            font-family: 'Inter', -apple-system, sans-serif;
-        }
-        .app-container {
-            max-width: 420px;
-            width: 100%;
-            background: #FDF8F0;
-            border-radius: 40px;
-            padding: 20px 16px 30px;
-            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6), 0 0 0 1px #D4A017 inset;
-        }
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 12px;
-            border-bottom: 1px solid rgba(212, 160, 23, 0.2);
-        }
-        .brand {
-            font-size: 22px;
-            font-weight: 800;
-            color: #1A1A2E;
-        }
-        .brand span {
-            color: #D4A017;
-        }
-        .follow {
-            font-size: 11px;
-            font-weight: 700;
-            color: #1A1A2E;
-            letter-spacing: 1px;
-        }
-        .follow i {
-            color: #D4A017;
-            margin-right: 6px;
-        }
-        .social-icons {
-            display: flex;
-            gap: 12px;
-        }
-        .social-icons i {
-            color: #1A1A2E;
-            font-size: 14px;
-            opacity: 0.4;
-        }
-        .headline {
-            text-align: center;
-            padding: 10px 0 6px;
-        }
-        .headline h1 {
-            font-size: 26px;
-            font-weight: 800;
-            color: #1A1A2E;
-        }
-        .headline h1 span {
-            color: #D4A017;
-        }
-        .headline .tag {
-            display: inline-block;
-            background: #D4A017;
-            color: #1A1A2E;
-            font-size: 12px;
-            font-weight: 800;
-            padding: 4px 16px;
-            border-radius: 40px;
-            margin-top: 4px;
-            text-transform: uppercase;
-        }
-        .headline .sub {
-            font-size: 14px;
-            color: #C0392B;
-            font-weight: 600;
-            margin-top: 4px;
-        }
-        .store-info {
-            text-align: center;
-            padding: 6px 0;
-        }
-        .store-name {
-            font-size: 20px;
-            font-weight: 700;
-            color: #1A1A2E;
-        }
-        .store-location {
-            font-size: 14px;
-            color: #666;
-        }
-        .store-location i {
-            color: #D4A017;
-            margin-right: 4px;
-        }
-        .wheel-wrapper {
-            position: relative;
-            width: 100%;
-            max-width: 300px;
-            margin: 8px auto;
-            aspect-ratio: 1/1;
-        }
-        #wheelCanvas {
-            width: 100% !important;
-            height: 100% !important;
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 8px 0 #B8860B, 0 12px 32px rgba(0, 0, 0, 0.3);
-            display: block;
-            background: #FDF8F0;
-        }
-        .pointer {
-            position: absolute;
-            top: -8px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 34px;
-            color: #C0392B;
-            text-shadow: 0 3px 0 #8B1A1A;
-            z-index: 10;
-        }
-        .spin-btn {
-            width: 80%;
-            max-width: 260px;
-            padding: 16px;
-            font-size: 20px;
-            font-weight: 800;
-            background: #D4A017;
-            color: #1A1A2E;
-            border: none;
-            border-radius: 60px;
-            box-shadow: 0 6px 0 #B8860B;
-            margin: 8px auto 4px;
-            display: block;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.08s;
-            text-transform: uppercase;
-        }
-        .spin-btn:active {
-            transform: translateY(4px);
-            box-shadow: 0 2px 0 #B8860B;
-        }
-        .spin-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        .spin-btn i {
-            margin-right: 8px;
-        }
-        .status-bar {
-            text-align: center;
-            padding: 6px 0;
-        }
-        .status-text {
-            font-size: 13px;
-            font-weight: 700;
-            color: #1A1A2E;
-            background: rgba(212, 160, 23, 0.1);
-            padding: 6px 24px;
-            border-radius: 40px;
-            display: inline-block;
-            border: 1px solid rgba(212, 160, 23, 0.15);
-        }
-        .status-text i {
-            color: #D4A017;
-            margin-right: 6px;
-            font-size: 8px;
-        }
-        .result-box,
-        .claimed-box {
-            background: white;
-            padding: 20px;
-            border-radius: 24px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-            border: 1px solid rgba(212, 160, 23, 0.2);
-            margin: 10px 0 12px;
-        }
-        .hidden {
-            display: none !important;
-        }
-        .text-center {
-            text-align: center;
-        }
-        .prize-badge {
-            display: inline-block;
-            background: #D4A017;
-            color: #1A1A2E;
-            font-size: 20px;
-            font-weight: 800;
-            padding: 4px 20px;
-            border-radius: 40px;
-        }
-        .win-title {
-            font-size: 24px;
-            font-weight: 800;
-            color: #1A1A2E;
-            text-align: center;
-            margin: 6px 0 2px;
-        }
-        .win-title .highlight {
-            color: #D4A017;
-        }
-        .win-sub {
-            font-size: 14px;
-            color: #666;
-            text-align: center;
-            margin-bottom: 14px;
-        }
-        .form-group {
-            margin-bottom: 10px;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 14px 18px;
-            border-radius: 40px;
-            border: 1.5px solid #E8E0D0;
-            font-size: 15px;
-            font-weight: 500;
-            background: #FAF8F2;
-            outline: none;
-            font-family: 'Inter', sans-serif;
-        }
-        .form-group input:focus {
-            border-color: #D4A017;
-        }
-        .phone-group {
-            display: flex;
-            align-items: center;
-            border: 1.5px solid #E8E0D0;
-            border-radius: 40px;
-            background: #FAF8F2;
-            overflow: hidden;
-        }
-        .phone-group:focus-within {
-            border-color: #D4A017;
-        }
-        .phone-group .code {
-            padding: 14px 8px 14px 18px;
-            font-weight: 700;
-            color: #1A1A2E;
-            font-size: 15px;
-            background: rgba(212, 160, 23, 0.06);
-            flex-shrink: 0;
-            border-right: 1px solid #E8E0D0;
-        }
-        .phone-group input {
-            flex: 1;
-            padding: 14px 16px;
-            border: none;
-            background: transparent;
-            font-size: 15px;
-            outline: none;
-            font-family: 'Inter', sans-serif;
-        }
-        .remember-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 6px 0 14px;
-        }
-        .remember-group input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: #D4A017;
-            cursor: pointer;
-        }
-        .remember-group label {
-            font-size: 14px;
-            color: #555;
-            cursor: pointer;
-            font-weight: 500;
-        }
-        .claim-btn {
-            width: 100%;
-            padding: 16px;
-            border-radius: 60px;
-            border: none;
-            background: #1A1A2E;
-            color: white;
-            font-size: 18px;
-            font-weight: 800;
-            cursor: pointer;
-            box-shadow: 0 4px 0 #0D0D0D;
-            transition: all 0.06s;
-            font-family: 'Inter', sans-serif;
-        }
-        .claim-btn:active {
-            transform: translateY(3px);
-            box-shadow: 0 1px 0 #0D0D0D;
-        }
-        .claim-btn i {
-            margin-right: 10px;
-        }
-        .note {
-            font-size: 12px;
-            color: #A8A09A;
-            text-align: center;
-            margin: 12px 0 0;
-        }
-        .claimed-box {
-            text-align: center;
-            background: rgba(212, 160, 23, 0.04);
-            border: 1px solid #D4A017;
-        }
-        .claimed-box h2 {
-            color: #1A1A2E;
-            font-size: 24px;
-        }
-        .claimed-box p {
-            color: #555;
-            font-weight: 500;
-            font-size: 15px;
-            margin: 4px 0 10px;
-        }
-        .claimed-box .again-btn {
-            padding: 12px 32px;
-            background: #D4A017;
-            border: none;
-            border-radius: 60px;
-            font-weight: 800;
-            font-size: 16px;
-            color: #1A1A2E;
-            cursor: pointer;
-            box-shadow: 0 3px 0 #B8860B;
-            margin-top: 10px;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.06s;
-        }
-        .claimed-box .again-btn:active {
-            transform: translateY(3px);
-            box-shadow: 0 1px 0 #B8860B;
-        }
-        .whatsapp-status {
-            font-size: 13px;
-            color: #1A1A2E;
-            padding: 10px;
-            background: rgba(212, 160, 23, 0.06);
-            border-radius: 12px;
-            margin: 8px 0;
-            font-weight: 500;
-        }
-        .footer {
-            padding: 14px 0 0;
-            border-top: 1px solid rgba(212, 160, 23, 0.12);
-            text-align: center;
-            margin-top: 6px;
-        }
-        .footer .brand-tag {
-            font-size: 12px;
-            color: #A8A09A;
-        }
-        .footer .brand-tag i {
-            color: #D4A017;
-            margin: 0 4px;
-        }
-        .loading-store {
-            text-align: center;
-            padding: 10px;
-            color: #666;
-            font-weight: 500;
-        }
-        @media (max-width: 400px) {
-            .headline h1 {
-                font-size: 22px;
-            }
-            .brand {
-                font-size: 18px;
-            }
-            .spin-btn {
-                font-size: 17px;
-                padding: 14px;
-            }
-            .win-title {
-                font-size: 20px;
-            }
-            .prize-badge {
-                font-size: 17px;
-                padding: 3px 16px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>🎡 Spin Africa - Stadium Gate</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    /* --- Your existing styles (keep them exactly as they are) --- */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0D0D0D; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 12px; font-family: 'Inter', -apple-system, sans-serif; }
+    .app-container { max-width: 420px; width: 100%; background: #FDF8F0; border-radius: 40px; padding: 20px 16px 30px; box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6), 0 0 0 1px #D4A017 inset; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid rgba(212, 160, 23, 0.2); }
+    .brand { font-size: 22px; font-weight: 800; color: #1A1A2E; }
+    .brand span { color: #D4A017; }
+    .follow { font-size: 11px; font-weight: 700; color: #1A1A2E; letter-spacing: 1px; }
+    .follow i { color: #D4A017; margin-right: 6px; }
+    .social-icons { display: flex; gap: 12px; }
+    .social-icons i { color: #1A1A2E; font-size: 14px; opacity: 0.4; }
+    .headline { text-align: center; padding: 10px 0 6px; }
+    .headline h1 { font-size: 26px; font-weight: 800; color: #1A1A2E; }
+    .headline h1 span { color: #D4A017; }
+    .headline .tag { display: inline-block; background: #D4A017; color: #1A1A2E; font-size: 12px; font-weight: 800; padding: 4px 16px; border-radius: 40px; margin-top: 4px; text-transform: uppercase; }
+    .headline .sub { font-size: 14px; color: #C0392B; font-weight: 600; margin-top: 4px; }
+    .store-info { text-align: center; padding: 6px 0; }
+    .store-name { font-size: 20px; font-weight: 700; color: #1A1A2E; }
+    .store-location { font-size: 14px; color: #666; }
+    .store-location i { color: #D4A017; margin-right: 4px; }
+    .wheel-wrapper { position: relative; width: 100%; max-width: 300px; margin: 8px auto; aspect-ratio: 1/1; }
+    #wheelCanvas { width: 100% !important; height: 100% !important; border-radius: 50%; cursor: pointer; box-shadow: 0 8px 0 #B8860B, 0 12px 32px rgba(0, 0, 0, 0.3); display: block; background: #FDF8F0; }
+    .pointer { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); font-size: 34px; color: #C0392B; text-shadow: 0 3px 0 #8B1A1A; z-index: 10; }
+    .spin-btn { width: 80%; max-width: 260px; padding: 16px; font-size: 20px; font-weight: 800; background: #D4A017; color: #1A1A2E; border: none; border-radius: 60px; box-shadow: 0 6px 0 #B8860B; margin: 8px auto 4px; display: block; cursor: pointer; text-align: center; transition: all 0.08s; text-transform: uppercase; }
+    .spin-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #B8860B; }
+    .spin-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .spin-btn i { margin-right: 8px; }
+    .status-bar { text-align: center; padding: 6px 0; }
+    .status-text { font-size: 13px; font-weight: 700; color: #1A1A2E; background: rgba(212, 160, 23, 0.1); padding: 6px 24px; border-radius: 40px; display: inline-block; border: 1px solid rgba(212, 160, 23, 0.15); }
+    .status-text i { color: #D4A017; margin-right: 6px; font-size: 8px; }
+    .result-box, .claimed-box { background: white; padding: 20px; border-radius: 24px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06); border: 1px solid rgba(212, 160, 23, 0.2); margin: 10px 0 12px; }
+    .hidden { display: none !important; }
+    .text-center { text-align: center; }
+    .prize-badge { display: inline-block; background: #D4A017; color: #1A1A2E; font-size: 20px; font-weight: 800; padding: 4px 20px; border-radius: 40px; }
+    .win-title { font-size: 24px; font-weight: 800; color: #1A1A2E; text-align: center; margin: 6px 0 2px; }
+    .win-title .highlight { color: #D4A017; }
+    .win-sub { font-size: 14px; color: #666; text-align: center; margin-bottom: 14px; }
+    .form-group { margin-bottom: 10px; }
+    .form-group input { width: 100%; padding: 14px 18px; border-radius: 40px; border: 1.5px solid #E8E0D0; font-size: 15px; font-weight: 500; background: #FAF8F2; outline: none; font-family: 'Inter', sans-serif; }
+    .form-group input:focus { border-color: #D4A017; }
+    .phone-group { display: flex; align-items: center; border: 1.5px solid #E8E0D0; border-radius: 40px; background: #FAF8F2; overflow: hidden; }
+    .phone-group:focus-within { border-color: #D4A017; }
+    .phone-group .code { padding: 14px 8px 14px 18px; font-weight: 700; color: #1A1A2E; font-size: 15px; background: rgba(212, 160, 23, 0.06); flex-shrink: 0; border-right: 1px solid #E8E0D0; }
+    .phone-group input { flex: 1; padding: 14px 16px; border: none; background: transparent; font-size: 15px; outline: none; font-family: 'Inter', sans-serif; }
+    .remember-group { display: flex; align-items: center; gap: 10px; margin: 6px 0 14px; }
+    .remember-group input[type="checkbox"] { width: 18px; height: 18px; accent-color: #D4A017; cursor: pointer; }
+    .remember-group label { font-size: 14px; color: #555; cursor: pointer; font-weight: 500; }
+    .claim-btn { width: 100%; padding: 16px; border-radius: 60px; border: none; background: #1A1A2E; color: white; font-size: 18px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 0 #0D0D0D; transition: all 0.06s; font-family: 'Inter', sans-serif; }
+    .claim-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #0D0D0D; }
+    .claim-btn i { margin-right: 10px; }
+    .note { font-size: 12px; color: #A8A09A; text-align: center; margin: 12px 0 0; }
+    .claimed-box { text-align: center; background: rgba(212, 160, 23, 0.04); border: 1px solid #D4A017; }
+    .claimed-box h2 { color: #1A1A2E; font-size: 24px; }
+    .claimed-box p { color: #555; font-weight: 500; font-size: 15px; margin: 4px 0 10px; }
+    .claimed-box .again-btn { padding: 12px 32px; background: #D4A017; border: none; border-radius: 60px; font-weight: 800; font-size: 16px; color: #1A1A2E; cursor: pointer; box-shadow: 0 3px 0 #B8860B; margin-top: 10px; font-family: 'Inter', sans-serif; transition: all 0.06s; }
+    .claimed-box .again-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #B8860B; }
+    .whatsapp-status { font-size: 13px; color: #1A1A2E; padding: 10px; background: rgba(212, 160, 23, 0.06); border-radius: 12px; margin: 8px 0; font-weight: 500; }
+    .footer { padding: 14px 0 0; border-top: 1px solid rgba(212, 160, 23, 0.12); text-align: center; margin-top: 6px; }
+    .footer .brand-tag { font-size: 12px; color: #A8A09A; }
+    .footer .brand-tag i { color: #D4A017; margin: 0 4px; }
+    .loading-store { text-align: center; padding: 10px; color: #666; font-weight: 500; }
+    @media (max-width: 400px) { .headline h1 { font-size: 22px; } .brand { font-size: 18px; } .spin-btn { font-size: 17px; padding: 14px; } .win-title { font-size: 20px; } .prize-badge { font-size: 17px; padding: 3px 16px; } }
+  </style>
 </head>
 <body>
-
-    <div class="app-container">
-
-        <!-- TOP BAR -->
-        <div class="top-bar">
-            <div class="brand">SPIN <span>AFRICA</span></div>
-            <div>
-                <span class="follow"><i class="fas fa-bullhorn"></i> FOLLOW</span>
-                <span class="social-icons">
-                    <i class="fab fa-facebook-f"></i>
-                    <i class="fab fa-instagram"></i>
-                    <i class="fab fa-youtube"></i>
-                </span>
-            </div>
-        </div>
-
-        <!-- HEADLINE -->
-        <div class="headline">
-            <h1>Spin to Win <span>Up to 15% OFF</span></h1>
-            <div class="tag">🏆 Free Gift</div>
-            <div class="sub"><i class="fas fa-gift"></i> Every spin wins a prize</div>
-        </div>
-
-        <!-- STORE INFO -->
-        <div id="storeInfo" class="store-info">
-            <div class="loading-store">Loading store...</div>
-        </div>
-
-        <!-- WHEEL -->
-        <div class="wheel-wrapper">
-            <canvas id="wheelCanvas" width="400" height="400"></canvas>
-            <div class="pointer">▼</div>
-        </div>
-
-        <!-- SPIN BUTTON -->
-        <button class="spin-btn" id="spinBtn"><i class="fas fa-sync-alt"></i> Spin Now</button>
-
-        <!-- STATUS -->
-        <div class="status-bar">
-            <span class="status-text" id="statusText"><i class="fas fa-circle"></i> Almost Near</span>
-        </div>
-
-        <!-- RESULT & FORM -->
-        <div id="resultBox" class="result-box hidden">
-            <div class="text-center">
-                <div class="prize-badge" id="prizeBadge">🎉 10% OFF</div>
-            </div>
-            <div class="win-title">You Won! <span class="highlight" id="resultTitle">10% Off</span></div>
-            <div class="win-sub">Enter your details to claim your prize</div>
-
-            <div class="form-group">
-                <input type="text" id="customerName" placeholder="Enter your Name" />
-            </div>
-            <div class="phone-group">
-                <span class="code" id="countryCodePrefix">+233</span>
-                <input type="tel" id="customerPhone" placeholder="Enter your Phone Number" />
-            </div>
-            <div class="remember-group">
-                <input type="checkbox" id="rememberMe" />
-                <label for="rememberMe">🔒 Remember my WhatsApp</label>
-            </div>
-            <button class="claim-btn" id="claimBtn"><i class="fas fa-unlock"></i> Yes! Unlock My Prize</button>
-            <div class="note">💡 We'll send your code via WhatsApp instantly</div>
-        </div>
-
-        <!-- CLAIMED -->
-        <div id="claimedBox" class="claimed-box hidden">
-            <h2>🎉 Congratulations!</h2>
-            <p id="claimedMessage">Your discount code is on its way to WhatsApp.</p>
-            <div id="whatsappStatus" class="whatsapp-status">📱 Opening WhatsApp...</div>
-            <button class="again-btn" id="againBtn"><i class="fas fa-redo"></i> Spin Again</button>
-        </div>
-
-        <!-- FOOTER -->
-        <div class="footer">
-            <div class="brand-tag"><i class="fas fa-store"></i> Powered by SPIN AFRICA</div>
-        </div>
-
+  <div class="app-container">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="brand">SPIN <span>AFRICA</span></div>
+      <div>
+        <span class="follow"><i class="fas fa-bullhorn"></i> FOLLOW</span>
+        <span class="social-icons">
+          <i class="fab fa-facebook-f"></i>
+          <i class="fab fa-instagram"></i>
+          <i class="fab fa-youtube"></i>
+        </span>
+      </div>
     </div>
 
-    <!-- ============================================================ -->
-    <!-- JAVASCRIPT - COMPLETE WORKING VERSION -->
-    <!-- ============================================================ -->
-    <script>
-        // ==========================================
-        // CONFIGURATION
-        // ==========================================
-        const SUPABASE_URL = 'https://jwwsmywgofvqcyaygzfd.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3d3NteXdnd2Z2cWN5YXlnemZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc2MjA2NTAsImV4cCI6MjA1MzE5NjY1MH0.nRc2uVfXhGRd0u-N_pAtJMYHqLq3VkC4pUcE9gIeA-k';
+    <!-- Headline -->
+    <div class="headline">
+      <h1>Spin to Win <span>Up to 15% OFF</span></h1>
+      <div class="tag">🏆 Free Gift</div>
+      <div class="sub"><i class="fas fa-gift"></i> Every spin wins a prize</div>
+    </div>
 
-        const PRIZES = [
-            { label: '15% OFF', color: '#D4A017', weight: 0.05, emoji: '🏆' },
-            { label: '10% OFF', color: '#C0392B', weight: 0.15, emoji: '⭐' },
-            { label: '8% OFF', color: '#E8A0BF', weight: 0.20, emoji: '⭐' },
-            { label: '5% OFF', color: '#D4A017', weight: 0.20, emoji: '⭐' },
-            { label: 'Free Gift', color: '#C0392B', weight: 0.20, emoji: '🎁' },
-            { label: 'Better Luck', color: '#C0392B', weight: 0.15, emoji: '🔄' },
-            { label: 'Double Spin!', color: '#D4A017', weight: 0.05, emoji: '💪' }
-        ];
+    <!-- Store Info -->
+    <div id="storeInfo" class="store-info">
+      <div class="loading-store">Loading store...</div>
+    </div>
 
-        // ==========================================
-        // STATE
-        // ==========================================
-        let currentRotation = 0.2;
-        let isSpinning = false;
-        let hasClaimed = false;
-        let currentPrize = null;
-        let storeData = null;
-        let animationId = null;
-        let idleAnimationId = null;
-        let isIdle = true;
+    <!-- Wheel -->
+    <div class="wheel-wrapper">
+      <canvas id="wheelCanvas" width="400" height="400"></canvas>
+      <div class="pointer">▼</div>
+    </div>
 
-        // ==========================================
-        // DOM REFS
-        // ==========================================
-        const canvas = document.getElementById('wheelCanvas');
-        const ctx = canvas.getContext('2d');
-        const spinBtn = document.getElementById('spinBtn');
-        const resultBox = document.getElementById('resultBox');
-        const claimedBox = document.getElementById('claimedBox');
-        const prizeBadge = document.getElementById('prizeBadge');
-        const resultTitle = document.getElementById('resultTitle');
-        const claimedMessage = document.getElementById('claimedMessage');
-        const whatsappStatus = document.getElementById('whatsappStatus');
-        const statusText = document.getElementById('statusText');
-        const storeInfo = document.getElementById('storeInfo');
-        const customerName = document.getElementById('customerName');
-        const customerPhone = document.getElementById('customerPhone');
-        const countryCodePrefix = document.getElementById('countryCodePrefix');
-        const rememberMe = document.getElementById('rememberMe');
-        const claimBtn = document.getElementById('claimBtn');
-        const againBtn = document.getElementById('againBtn');
+    <!-- Spin Button -->
+    <button class="spin-btn" id="spinBtn"><i class="fas fa-sync-alt"></i> Spin Now</button>
 
-        // ==========================================
-        // LOAD STORE
-        // ==========================================
-        async function loadStore() {
-            try {
-                const slug = window.location.pathname.split('/').pop() || 'stadium-gate';
-                const res = await fetch(`${SUPABASE_URL}/rest/v1/stores?slug=eq.${slug}`, {
-                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
-                });
-                const data = await res.json();
-                if (data && data.length > 0) {
-                    storeData = data[0];
-                    storeInfo.innerHTML = `
-                        <div class="store-name">🏛️ ${storeData.name}</div>
-                        <div class="store-location"><i class="fas fa-map-pin"></i> ${storeData.location}</div>
-                    `;
-                } else {
-                    storeInfo.innerHTML =
-                    `<div class="store-name">🏛️ Stadium Gate Shopping Mall</div><div class="store-location"><i class="fas fa-map-pin"></i> Ho, Ghana</div>`;
-                }
-            } catch (e) {
-                storeInfo.innerHTML =
-                    `<div class="store-name">🏛️ Stadium Gate Shopping Mall</div><div class="store-location"><i class="fas fa-map-pin"></i> Ho, Ghana</div>`;
+    <!-- Status -->
+    <div class="status-bar">
+      <span class="status-text" id="statusText"><i class="fas fa-circle"></i> Almost Near</span>
+    </div>
+
+    <!-- Result & Form -->
+    <div id="resultBox" class="result-box hidden">
+      <div class="text-center">
+        <div class="prize-badge" id="prizeBadge">🎉 10% OFF</div>
+      </div>
+      <div class="win-title">You Won! <span class="highlight" id="resultTitle">10% Off</span></div>
+      <div class="win-sub">Enter your details to claim your prize</div>
+      <div class="form-group">
+        <input type="text" id="customerName" placeholder="Enter your Name" />
+      </div>
+      <div class="phone-group">
+        <span class="code" id="countryCodePrefix">+233</span>
+        <input type="tel" id="customerPhone" placeholder="Enter your Phone Number" />
+      </div>
+      <div class="remember-group">
+        <input type="checkbox" id="rememberMe" />
+        <label for="rememberMe">🔒 Remember my WhatsApp</label>
+      </div>
+      <button class="claim-btn" id="claimBtn"><i class="fas fa-unlock"></i> Yes! Unlock My Prize</button>
+      <div class="note">💡 We'll send your code via WhatsApp instantly</div>
+    </div>
+
+    <!-- Claimed -->
+    <div id="claimedBox" class="claimed-box hidden">
+      <h2>🎉 Congratulations!</h2>
+      <p id="claimedMessage">Your discount code is on its way to WhatsApp.</p>
+      <div id="whatsappStatus" class="whatsapp-status">📱 Opening WhatsApp...</div>
+      <button class="again-btn" id="againBtn"><i class="fas fa-redo"></i> Spin Again</button>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="brand-tag"><i class="fas fa-store"></i> Powered by SPIN AFRICA</div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    // JAVASCRIPT - THE FINAL WORKING VERSION
+    // ============================================================
+
+    // --- Supabase Configuration ---
+    const SUPABASE_URL = 'https://jwwsmywgofvqcyaygzfd.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3d3NteXdnd2Z2cWN5YXlnemZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc2MjA2NTAsImV4cCI6MjA1MzE5NjY1MH0.nRc2uVfXhGRd0u-N_pAtJMYHqLq3VkC4pUcE9gIeA-k';
+
+    // --- Prize Configuration ---
+    const PRIZES = [
+      { label: '15% OFF', color: '#D4A017', weight: 0.05, emoji: '🏆' },
+      { label: '10% OFF', color: '#C0392B', weight: 0.15, emoji: '⭐' },
+      { label: '8% OFF', color: '#E8A0BF', weight: 0.20, emoji: '⭐' },
+      { label: '5% OFF', color: '#D4A017', weight: 0.20, emoji: '⭐' },
+      { label: 'Free Gift', color: '#C0392B', weight: 0.20, emoji: '🎁' },
+      { label: 'Better Luck', color: '#C0392B', weight: 0.15, emoji: '🔄' },
+      { label: 'Double Spin!', color: '#D4A017', weight: 0.05, emoji: '💪' }
+    ];
+
+    // --- State ---
+    let currentRotation = 0.2;
+    let isSpinning = false;
+    let hasClaimed = false;
+    let currentPrize = null; // This will hold the selected prize object
+    let storeData = null;
+    let animationId = null;
+    let idleAnimationId = null;
+    let isIdle = true;
+
+    // --- DOM References ---
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+    const spinBtn = document.getElementById('spinBtn');
+    const resultBox = document.getElementById('resultBox');
+    const claimedBox = document.getElementById('claimedBox');
+    const prizeBadge = document.getElementById('prizeBadge');
+    const resultTitle = document.getElementById('resultTitle');
+    const claimedMessage = document.getElementById('claimedMessage');
+    const whatsappStatus = document.getElementById('whatsappStatus');
+    const statusText = document.getElementById('statusText');
+    const storeInfo = document.getElementById('storeInfo');
+    const customerName = document.getElementById('customerName');
+    const customerPhone = document.getElementById('customerPhone');
+    const countryCodePrefix = document.getElementById('countryCodePrefix');
+    const rememberMe = document.getElementById('rememberMe');
+    const claimBtn = document.getElementById('claimBtn');
+    const againBtn = document.getElementById('againBtn');
+
+    // --- Helpers ---
+    async function loadStore() {
+      try {
+        const slug = window.location.pathname.split('/').pop() || 'stadium-gate';
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/stores?slug=eq.${slug}`, {
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+        });
+        const data = await res.json();
+        if (data && data.length > 0) {
+          storeData = data[0];
+          storeInfo.innerHTML = `
+            <div class="store-name">🏛️ ${storeData.name}</div>
+            <div class="store-location"><i class="fas fa-map-pin"></i> ${storeData.location}</div>
+          `;
+        } else {
+          storeInfo.innerHTML = `<div class="store-name">🏛️ Stadium Gate Shopping Mall</div><div class="store-location"><i class="fas fa-map-pin"></i> Ho, Ghana</div>`;
+        }
+      } catch (e) {
+        storeInfo.innerHTML = `<div class="store-name">🏛️ Stadium Gate Shopping Mall</div><div class="store-location"><i class="fas fa-map-pin"></i> Ho, Ghana</div>`;
+      }
+    }
+
+    function loadSavedWhatsApp() {
+      try {
+        const saved = localStorage.getItem('stadium_gate_whatsapp');
+        if (saved) {
+          const match = saved.match(/^(\+\d+)(\d+)$/);
+          if (match) {
+            countryCodePrefix.textContent = match[1];
+            customerPhone.value = match[2];
+            rememberMe.checked = true;
+          }
+        }
+      } catch (e) {}
+    }
+
+    function detectCountryCode() {
+      let code = '+233';
+      try {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (tz.includes('Africa/Accra') || tz.includes('Africa/Abidjan')) code = '+233';
+        else if (tz.includes('Africa/Lagos')) code = '+234';
+        else if (tz.includes('Africa/Nairobi')) code = '+254';
+        else if (tz.includes('Africa/Johannesburg')) code = '+27';
+      } catch (e) {}
+      countryCodePrefix.textContent = code;
+    }
+
+    // --- Draw Wheel ---
+    function drawWheel(rotation) {
+      const w = canvas.width, h = canvas.height;
+      const cx = w / 2, cy = h / 2;
+      const radius = w * 0.42;
+      const segAngle = (2 * Math.PI) / PRIZES.length;
+
+      ctx.clearRect(0, 0, w, h);
+
+      for (let i = 0; i < PRIZES.length; i++) {
+        const start = i * segAngle + rotation;
+        const end = start + segAngle;
+        const prize = PRIZES[i];
+
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, radius, start, end);
+        ctx.closePath();
+        ctx.fillStyle = prize.color;
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        const mid = start + segAngle / 2;
+        const textR = radius * 0.65;
+        const x = cx + Math.cos(mid) * textR;
+        const y = cy + Math.sin(mid) * textR;
+
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = 'rgba(0,0,0,0.15)';
+        ctx.shadowBlur = 4;
+
+        const isDark = (prize.color === '#1A1A2E' || prize.color === '#C0392B' || prize.color === '#A8A09A');
+        ctx.fillStyle = isDark ? '#fff' : '#1A1A2E';
+        ctx.font = 'bold 14px Inter, sans-serif';
+        ctx.shadowBlur = 0;
+        ctx.fillText(prize.label, x, y);
+      }
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius * 0.14, 0, 2 * Math.PI);
+      ctx.fillStyle = '#FDF8F0';
+      ctx.shadowColor = 'rgba(0,0,0,0.1)';
+      ctx.shadowBlur = 12;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = '#D4A017';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.fillStyle = '#D4A017';
+      ctx.font = 'bold 22px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🎡', cx, cy);
+    }
+
+    // --- Select Prize ---
+    function selectPrize() {
+      const random = Math.random();
+      let cumulative = 0;
+      for (const prize of PRIZES) {
+        cumulative += prize.weight;
+        if (random <= cumulative) return { ...prize };
+      }
+      return { ...PRIZES[PRIZES.length - 1] };
+    }
+
+    // --- Idle Spin ---
+    function startIdleSpin() {
+      if (idleAnimationId) cancelAnimationFrame(idleAnimationId);
+      isIdle = true;
+      function idleAnimate() {
+        if (!isIdle) return;
+        currentRotation += 0.002;
+        drawWheel(currentRotation);
+        idleAnimationId = requestAnimationFrame(idleAnimate);
+      }
+      idleAnimate();
+    }
+
+    function stopIdleSpin() {
+      isIdle = false;
+      if (idleAnimationId) {
+        cancelAnimationFrame(idleAnimationId);
+        idleAnimationId = null;
+      }
+    }
+
+    // --- Save Spin ---
+    async function saveSpin(prize) {
+      try {
+        const slug = window.location.pathname.split('/').pop() || 'stadium-gate';
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/stores?slug=eq.${slug}`, {
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+        });
+        const stores = await res.json();
+        if (!stores || stores.length === 0) return;
+        const storeId = stores[0].id;
+        await fetch(`${SUPABASE_URL}/rest/v1/spins`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({
+            store_id: storeId,
+            prize_won: prize.label,
+            is_win: prize.label !== 'Better Luck'
+          })
+        });
+      } catch (e) { console.error('Spin save error:', e); }
+    }
+
+    // --- The CORRECTED Spin Function ---
+    function spinWheel() {
+      if (isSpinning || hasClaimed) return;
+
+      stopIdleSpin();
+
+      // 1. SELECT THE PRIZE FIRST AND STORE IT
+      const selectedPrize = selectPrize();
+      currentPrize = selectedPrize; // Store the selected prize globally
+
+      // 2. CALCULATE THE EXACT ROTATION TO LAND ON THE SELECTED PRIZE
+      const segIndex = PRIZES.findIndex(p => p.label === selectedPrize.label);
+      const segAngle = (2 * Math.PI) / PRIZES.length;
+
+      // The pointer is at the top (12 o'clock). We need the target angle.
+      // We want the *center* of the segment to align with the pointer.
+      const targetAngle = segIndex * segAngle + segAngle / 2;
+
+      // Add random full spins for excitement (5-9 extra spins)
+      const extraSpins = 5 + Math.random() * 5;
+      // Calculate the total rotation needed from the current position
+      // We need to go forward from currentRotation to targetAngle, plus extra spins.
+      // The '+ TAU' ensures we always go forward.
+      let targetRotation = currentRotation + extraSpins * 2 * Math.PI + 
+                           (targetAngle - (currentRotation % (2 * Math.PI)));
+
+      // 3. SET UP THE SPIN
+      isSpinning = true;
+      spinBtn.disabled = true;
+      spinBtn.innerHTML = '🔄 Spinning...';
+      resultBox.classList.add('hidden');
+      claimedBox.classList.add('hidden');
+      statusText.innerHTML = '<i class="fas fa-circle"></i> Spinning...';
+
+      const duration = 4000 + Math.random() * 1500;
+      const startTime = Date.now();
+      const startRotation = currentRotation;
+
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+      }
+
+      // 4. THE ANIMATION LOOP
+      function animate() {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        // Easing function for a smooth deceleration
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const rotation = startRotation + (targetRotation - startRotation) * eased;
+
+        drawWheel(rotation);
+        currentRotation = rotation;
+
+        if (progress < 1) {
+          animationId = requestAnimationFrame(animate);
+        } else {
+          // 5. SPIN COMPLETE - USE THE SELECTED PRIZE
+          isSpinning = false;
+          spinBtn.disabled = false;
+          spinBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Spin Now';
+
+          // Update the UI
+          const prizeLabel = selectedPrize.label;
+          const prizeEmoji = selectedPrize.emoji;
+          prizeBadge.textContent = `${prizeEmoji} ${prizeLabel}`;
+          resultTitle.textContent = prizeLabel;
+
+          if (prizeLabel === 'Better Luck') {
+            statusText.innerHTML = '<i class="fas fa-circle"></i> Better Luck Next Time!';
+          } else {
+            statusText.innerHTML = `<i class="fas fa-circle"></i> You won: ${prizeLabel}! 🎉`;
+          }
+
+          resultBox.classList.remove('hidden');
+
+          // Auto-fill saved WhatsApp number
+          try {
+            const saved = localStorage.getItem('stadium_gate_whatsapp');
+            if (saved) {
+              const match = saved.match(/^(\+\d+)(\d+)$/);
+              if (match) {
+                customerPhone.value = match[2];
+              }
             }
-        }
+          } catch (e) {}
 
-        // ==========================================
-        // HELPERS
-        // ==========================================
-        function loadSavedWhatsApp() {
-            try {
-                const saved = localStorage.getItem('stadium_gate_whatsapp');
-                if (saved) {
-                    const match = saved.match(/^(\+\d+)(\d+)$/);
-                    if (match) {
-                        countryCodePrefix.textContent = match[1];
-                        customerPhone.value = match[2];
-                        rememberMe.checked = true;
-                    }
-                }
-            } catch (e) {}
-        }
+          // Save spin to Supabase
+          saveSpin(selectedPrize);
 
-        function detectCountryCode() {
-            let code = '+233';
-            try {
-                const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                if (tz.includes('Africa/Accra') || tz.includes('Africa/Abidjan')) code = '+233';
-                else if (tz.includes('Africa/Lagos')) code = '+234';
-                else if (tz.includes('Africa/Nairobi')) code = '+254';
-                else if (tz.includes('Africa/Johannesburg')) code = '+27';
-            } catch (e) {}
-            countryCodePrefix.textContent = code;
-        }
-
-        // ==========================================
-        // DRAW WHEEL
-        // ==========================================
-        function drawWheel(rotation) {
-            const w = canvas.width,
-                h = canvas.height;
-            const cx = w / 2,
-                cy = h / 2;
-            const radius = w * 0.42;
-            const segAngle = (2 * Math.PI) / PRIZES.length;
-
-            ctx.clearRect(0, 0, w, h);
-
-            for (let i = 0; i < PRIZES.length; i++) {
-                const start = i * segAngle + rotation;
-                const end = start + segAngle;
-                const prize = PRIZES[i];
-
-                ctx.beginPath();
-                ctx.moveTo(cx, cy);
-                ctx.arc(cx, cy, radius, start, end);
-                ctx.closePath();
-                ctx.fillStyle = prize.color;
-                ctx.fill();
-                ctx.strokeStyle = '#fff';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                const mid = start + segAngle / 2;
-                const textR = radius * 0.65;
-                const x = cx + Math.cos(mid) * textR;
-                const y = cy + Math.sin(mid) * textR;
-
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.shadowColor = 'rgba(0,0,0,0.15)';
-                ctx.shadowBlur = 4;
-
-                const isDark = (prize.color === '#1A1A2E' || prize.color === '#C0392B' || prize.color === '#A8A09A');
-                ctx.fillStyle = isDark ? '#fff' : '#1A1A2E';
-                ctx.font = 'bold 14px Inter, sans-serif';
-                ctx.shadowBlur = 0;
-                ctx.fillText(prize.label, x, y);
+          // Restart idle spin after 30 seconds
+          setTimeout(() => {
+            if (!isSpinning && !hasClaimed && !resultBox.classList.contains('hidden')) {
+              startIdleSpin();
             }
-
-            ctx.beginPath();
-            ctx.arc(cx, cy, radius * 0.14, 0, 2 * Math.PI);
-            ctx.fillStyle = '#FDF8F0';
-            ctx.shadowColor = 'rgba(0,0,0,0.1)';
-            ctx.shadowBlur = 12;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-            ctx.strokeStyle = '#D4A017';
-            ctx.lineWidth = 3;
-            ctx.stroke();
-            ctx.fillStyle = '#D4A017';
-            ctx.font = 'bold 22px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('🎡', cx, cy);
+          }, 30000);
         }
+      }
 
-        // ==========================================
-        // SELECT PRIZE
-        // ==========================================
-        function selectPrize() {
-            const random = Math.random();
-            let cumulative = 0;
-            for (const prize of PRIZES) {
-                cumulative += prize.weight;
-                if (random <= cumulative) return { ...prize };
-            }
-            return { ...PRIZES[PRIZES.length - 1] };
+      animate();
+    }
+
+    // --- Submit Lead ---
+    async function submitLead() {
+      const phone = customerPhone.value.trim();
+      const name = customerName.value.trim() || 'Customer';
+
+      if (!phone) {
+        alert('📱 Please enter your WhatsApp number');
+        return;
+      }
+      if (phone.length < 6) {
+        alert('📱 Please enter a valid WhatsApp number');
+        return;
+      }
+      if (!currentPrize) {
+        alert('⚠️ Please spin the wheel first!');
+        return;
+      }
+
+      const fullNumber = countryCodePrefix.textContent + phone;
+      if (rememberMe.checked) {
+        try { localStorage.setItem('stadium_gate_whatsapp', fullNumber); } catch (e) {}
+      }
+
+      const code = 'SG-' + Date.now().toString(36).toUpperCase();
+      const prizeWon = currentPrize.label;
+      const storeName = storeData ? storeData.name : 'Stadium Gate Shopping Mall';
+
+      resultBox.classList.add('hidden');
+      claimedBox.classList.remove('hidden');
+      hasClaimed = true;
+      stopIdleSpin();
+
+      const message = `🎉 Congratulations ${name}!\n\nYou won: ${prizeWon}\nYour code: ${code}\n\n✅ Show this at checkout.\n\n🏛️ ${storeName}\n📍 Ho, Ghana`;
+
+      claimedMessage.textContent = `🎉 ${name}, you won ${prizeWon}!`;
+
+      const waLink = `https://wa.me/${fullNumber.replace('+', '')}?text=${encodeURIComponent(message)}`;
+
+      whatsappStatus.textContent = '📱 Opening WhatsApp with your code...';
+      whatsappStatus.style.display = 'block';
+
+      // Save lead to Supabase
+      try {
+        if (storeData) {
+          await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
+            method: 'POST',
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify({
+              store_id: storeData.id,
+              name: name,
+              whatsapp: fullNumber,
+              prize_won: prizeWon,
+              discount_code: code,
+              is_redeemed: false
+            })
+          });
         }
+      } catch (e) { console.error('Lead save error:', e); }
 
-        // ==========================================
-        // IDLE SPIN
-        // ==========================================
-        function startIdleSpin() {
-            if (idleAnimationId) cancelAnimationFrame(idleAnimationId);
-            isIdle = true;
-
-            function idleAnimate() {
-                if (!isIdle) return;
-                currentRotation += 0.002;
-                drawWheel(currentRotation);
-                idleAnimationId = requestAnimationFrame(idleAnimate);
-            }
-            idleAnimate();
+      const win = window.open(waLink, '_blank');
+      setTimeout(() => {
+        if (!win || win.closed) {
+          navigator.clipboard.writeText(`${message}\n\nLink: ${waLink}`).then(() => {
+            whatsappStatus.textContent = '✅ Code copied to clipboard!';
+          }).catch(() => {
+            whatsappStatus.textContent = `📋 Your code: ${code}`;
+          });
+        } else {
+          whatsappStatus.textContent = '✅ WhatsApp opened! Tap "Send" to get your code.';
         }
+      }, 2000);
 
-        function stopIdleSpin() {
-            isIdle = false;
-            if (idleAnimationId) {
-                cancelAnimationFrame(idleAnimationId);
-                idleAnimationId = null;
-            }
-        }
+      alert(`🎉 ${name}!\n\nYou won: ${prizeWon}\nCode: ${code}\n\n📱 WhatsApp opening...`);
+    }
 
-        // ==========================================
-        // THE FIXED SPIN FUNCTION - WORKS!
-        // ==========================================
-        function spinWheel() {
-            if (isSpinning || hasClaimed) return;
+    // --- Reset ---
+    function resetGame() {
+      hasClaimed = false;
+      claimedBox.classList.add('hidden');
+      resultBox.classList.add('hidden');
+      currentPrize = null;
+      spinBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Spin Now';
+      spinBtn.disabled = false;
+      isSpinning = false;
+      customerName.value = '';
+      customerPhone.value = '';
+      whatsappStatus.style.display = 'none';
+      statusText.innerHTML = '<i class="fas fa-circle"></i> Almost Near';
+      loadSavedWhatsApp();
+      startIdleSpin();
+    }
 
-            stopIdleSpin();
+    // --- Init ---
+    async function init() {
+      detectCountryCode();
+      loadSavedWhatsApp();
+      await loadStore();
+      drawWheel(0.2);
+      startIdleSpin();
 
-            // 1. Select the prize
-            const selected = selectPrize();
-            currentPrize = selected;
+      spinBtn.addEventListener('click', spinWheel);
+      canvas.addEventListener('click', spinWheel);
+      claimBtn.addEventListener('click', submitLead);
+      againBtn.addEventListener('click', resetGame);
 
-            // 2. Calculate target rotation
-            const segIndex = PRIZES.findIndex(p => p.label === selected.label);
-            const segAngle = (2 * Math.PI) / PRIZES.length;
-            const targetAngle = segIndex * segAngle + segAngle / 2;
-            const extraSpins = 5 + Math.random() * 5;
-            const targetRotation = currentRotation + extraSpins * 2 * Math.PI +
-                (targetAngle - (currentRotation % (2 * Math.PI)));
+      document.addEventListener('click', () => { if (isIdle) stopIdleSpin(); });
+      document.addEventListener('touchstart', () => { if (isIdle) stopIdleSpin(); });
 
-            isSpinning = true;
-            spinBtn.disabled = true;
-            spinBtn.innerHTML = '🔄 Spinning...';
-            resultBox.classList.add('hidden');
-            claimedBox.classList.add('hidden');
-            statusText.innerHTML = '<i class="fas fa-circle"></i> Spinning...';
+      console.log('🎡 SPIN AFRICA v5.0 - FINAL FIXED VERSION!');
+      console.log('✅ The prize you win on the wheel will now match the result box.');
+    }
 
-            const duration = 4000 + Math.random() * 1500;
-            const startTime = Date.now();
-            const startRotation = currentRotation;
-
-            if (animationId) {
-                cancelAnimationFrame(animationId);
-                animationId = null;
-            }
-
-            // 3. Animate
-            function animate() {
-                const elapsed = Date.now() - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                const eased = 1 - Math.pow(1 - progress, 3);
-                const rotation = startRotation + (targetRotation - startRotation) * eased;
-
-                drawWheel(rotation);
-                currentRotation = rotation;
-
-                if (progress < 1) {
-                    animationId = requestAnimationFrame(animate);
-                } else {
-                    // 4. Done - use the selected prize
-                    isSpinning = false;
-                    spinBtn.disabled = false;
-                    spinBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Spin Now';
-
-                    // Update UI
-                    prizeBadge.textContent = `${selected.emoji} ${selected.label}`;
-                    resultTitle.textContent = selected.label;
-
-                    if (selected.label === 'Better Luck') {
-                        statusText.innerHTML = '<i class="fas fa-circle"></i> Better Luck Next Time!';
-                    } else {
-                        statusText.innerHTML = `<i class="fas fa-circle"></i> You won: ${selected.label}! 🎉`;
-                    }
-
-                    resultBox.classList.remove('hidden');
-
-                    // Auto-fill saved number
-                    try {
-                        const saved = localStorage.getItem('stadium_gate_whatsapp');
-                        if (saved) {
-                            const match = saved.match(/^(\+\d+)(\d+)$/);
-                            if (match) {
-                                customerPhone.value = match[2];
-                            }
-                        }
-                    } catch (e) {}
-
-                    // Save to Supabase
-                    saveSpin(selected);
-
-                    // Restart idle spin after 30s
-                    setTimeout(() => {
-                        if (!isSpinning && !hasClaimed && !resultBox.classList.contains('hidden')) {
-                            startIdleSpin();
-                        }
-                    }, 30000);
-                }
-            }
-
-            animate();
-        }
-
-        // ==========================================
-        // SAVE SPIN
-        // ==========================================
-        async function saveSpin(prize) {
-            try {
-                const slug = window.location.pathname.split('/').pop() || 'stadium-gate';
-                const res = await fetch(`${SUPABASE_URL}/rest/v1/stores?slug=eq.${slug}`, {
-                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
-                });
-                const stores = await res.json();
-                if (!stores || stores.length === 0) return;
-                const storeId = stores[0].id;
-
-                await fetch(`${SUPABASE_URL}/rest/v1/spins`, {
-                    method: 'POST',
-                    headers: {
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                        'Content-Type': 'application/json',
-                        'Prefer': 'return=minimal'
-                    },
-                    body: JSON.stringify({
-                        store_id: storeId,
-                        prize_won: prize.label,
-                        is_win: prize.label !== 'Better Luck'
-                    })
-                });
-            } catch (e) { console.error('Spin save error:', e); }
-        }
-
-        // ==========================================
-        // SUBMIT LEAD
-        // ==========================================
-        async function submitLead() {
-            const phone = customerPhone.value.trim();
-            const name = customerName.value.trim() || 'Customer';
-
-            if (!phone) {
-                alert('📱 Please enter your WhatsApp number');
-                return;
-            }
-            if (phone.length < 6) {
-                alert('📱 Please enter a valid WhatsApp number');
-                return;
-            }
-            if (!currentPrize) {
-                alert('⚠️ Please spin the wheel first!');
-                return;
-            }
-
-            const fullNumber = countryCodePrefix.textContent + phone;
-            if (rememberMe.checked) {
-                try { localStorage.setItem('stadium_gate_whatsapp', fullNumber); } catch (e) {}
-            }
-
-            const code = 'SG-' + Date.now().toString(36).toUpperCase();
-            const prizeWon = currentPrize.label;
-            const storeName = storeData ? storeData.name : 'Stadium Gate Shopping Mall';
-
-            resultBox.classList.add('hidden');
-            claimedBox.classList.remove('hidden');
-            hasClaimed = true;
-            stopIdleSpin();
-
-            const message =
-                `🎉 Congratulations ${name}!\n\nYou won: ${prizeWon}\nYour code: ${code}\n\n✅ Show this at checkout.\n\n🏛️ ${storeName}\n📍 Ho, Ghana`;
-
-            claimedMessage.textContent = `🎉 ${name}, you won ${prizeWon}!`;
-
-            const waLink =
-                `https://wa.me/${fullNumber.replace('+', '')}?text=${encodeURIComponent(message)}`;
-
-            whatsappStatus.textContent = '📱 Opening WhatsApp with your code...';
-            whatsappStatus.style.display = 'block';
-
-            // Save lead to Supabase
-            try {
-                if (storeData) {
-                    await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
-                        method: 'POST',
-                        headers: {
-                            'apikey': SUPABASE_ANON_KEY,
-                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                            'Content-Type': 'application/json',
-                            'Prefer': 'return=minimal'
-                        },
-                        body: JSON.stringify({
-                            store_id: storeData.id,
-                            name: name,
-                            whatsapp: fullNumber,
-                            prize_won: prizeWon,
-                            discount_code: code,
-                            is_redeemed: false
-                        })
-                    });
-                }
-            } catch (e) { console.error('Lead save error:', e); }
-
-            const win = window.open(waLink, '_blank');
-            setTimeout(() => {
-                if (!win || win.closed) {
-                    navigator.clipboard.writeText(`${message}\n\nLink: ${waLink}`).then(() => {
-                        whatsappStatus.textContent = '✅ Code copied to clipboard!';
-                    }).catch(() => {
-                        whatsappStatus.textContent = `📋 Your code: ${code}`;
-                    });
-                } else {
-                    whatsappStatus.textContent = '✅ WhatsApp opened! Tap "Send" to get your code.';
-                }
-            }, 2000);
-
-            alert(`🎉 ${name}!\n\nYou won: ${prizeWon}\nCode: ${code}\n\n📱 WhatsApp opening...`);
-        }
-
-        // ==========================================
-        // RESET
-        // ==========================================
-        function resetGame() {
-            hasClaimed = false;
-            claimedBox.classList.add('hidden');
-            resultBox.classList.add('hidden');
-            currentPrize = null;
-            spinBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Spin Now';
-            spinBtn.disabled = false;
-            isSpinning = false;
-            customerName.value = '';
-            customerPhone.value = '';
-            whatsappStatus.style.display = 'none';
-            statusText.innerHTML = '<i class="fas fa-circle"></i> Almost Near';
-            loadSavedWhatsApp();
-            startIdleSpin();
-        }
-
-        // ==========================================
-        // INIT
-        // ==========================================
-        async function init() {
-            detectCountryCode();
-            loadSavedWhatsApp();
-            await loadStore();
-            drawWheel(0.2);
-            startIdleSpin();
-
-            spinBtn.addEventListener('click', spinWheel);
-            canvas.addEventListener('click', spinWheel);
-            claimBtn.addEventListener('click', submitLead);
-            againBtn.addEventListener('click', resetGame);
-
-            document.addEventListener('click', () => { if (isIdle) stopIdleSpin(); });
-            document.addEventListener('touchstart', () => { if (isIdle) stopIdleSpin(); });
-
-            console.log('🎡 SPIN AFRICA v4.0 - FULLY WORKING!');
-            console.log('✅ Prize matching fixed. Spin and test!');
-        }
-
-        document.addEventListener('DOMContentLoaded', init);
-    </script>
-
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
 </body>
 </html>
