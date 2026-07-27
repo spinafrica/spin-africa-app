@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
     <title>🎡 Spin Africa - Stadium Gate Shopping Mall</title>
+    <!-- CACHE BUSTER: Version 2.1 -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <style>
@@ -185,6 +189,7 @@
         // ============================================================
         // CONFIGURATION
         // ============================================================
+        // v2.1 - FIXED PRIZE MATCHING
         const SUPABASE_URL = 'https://jwwsmywgofvqcyaygzfd.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3d3NteXdnd2Z2cWN5YXlnemZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc2MjA2NTAsImV4cCI6MjA1MzE5NjY1MH0.nRc2uVfXhGRd0u-N_pAtJMYHqLq3VkC4pUcE9gIeA-k';
 
@@ -410,16 +415,16 @@
         }
 
         // ============================================================
-        // SPIN WHEEL - THE MAIN LOGIC
+        // SPIN WHEEL - FIXED
         // ============================================================
         function spinWheel() {
             if (isSpinning || hasClaimed) return;
 
             stopIdleSpin();
 
-            // 1. SELECT THE PRIZE FIRST
+            // 1. SELECT THE PRIZE FIRST AND STORE IT
             const selected = selectPrize();
-            currentPrize = selected;
+            currentPrize = selected; // Store the ENTIRE prize object
 
             // 2. CALCULATE TARGET ROTATION
             const segIndex = PRIZES.findIndex(p => p.label === selected.label);
@@ -457,20 +462,18 @@
                 if (progress < 1) {
                     animationId = requestAnimationFrame(animate);
                 } else {
-                    // 3. SPIN COMPLETE - USE THE SAME SELECTED PRIZE
+                    // 3. SPIN COMPLETE - USE THE STORED PRIZE
                     isSpinning = false;
                     spinBtn.disabled = false;
                     spinBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Spin Now';
 
-                    // 4. UPDATE UI WITH THE SELECTED PRIZE
+                    // 4. UPDATE UI WITH THE CORRECT PRIZE
                     const prizeLabel = selected.label;
                     const prizeEmoji = selected.emoji;
 
-                    // Update all display elements
                     prizeBadge.textContent = `${prizeEmoji} ${prizeLabel}`;
                     resultTitle.textContent = prizeLabel;
 
-                    // Status message
                     if (prizeLabel === 'Better Luck') {
                         statusText.innerHTML = '<i class="fas fa-circle"></i> Better Luck Next Time!';
                     } else {
@@ -545,7 +548,7 @@
         }
 
         // ============================================================
-        // SUBMIT LEAD
+        // SUBMIT LEAD - USE STORED PRIZE
         // ============================================================
         async function submitLead() {
             const phone = customerPhone.value.trim();
@@ -561,6 +564,7 @@
                 return;
             }
 
+            // CRITICAL: Use the stored 'currentPrize' object
             if (!currentPrize) {
                 alert('⚠️ Please spin the wheel first!');
                 return;
@@ -678,7 +682,8 @@
                 if (isIdle) stopIdleSpin();
             });
 
-            console.log('🎡 SPIN AFRICA loaded!');
+            console.log('🎡 SPIN AFRICA v2.1 loaded!');
+            console.log('✅ Prize matching fix applied!');
         }
 
         document.addEventListener('DOMContentLoaded', init);
