@@ -183,12 +183,11 @@
 
     <script>
         // ============================================================
-        // CONFIGURATION & STATE
+        // CONFIGURATION
         // ============================================================
         const SUPABASE_URL = 'https://jwwsmywgofvqcyaygzfd.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp3d3NteXdnd2Z2cWN5YXlnemZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc2MjA2NTAsImV4cCI6MjA1MzE5NjY1MH0.nRc2uVfXhGRd0u-N_pAtJMYHqLq3VkC4pUcE9gIeA-k';
 
-        // Prize configuration
         const PRIZES = [
             { label: '15% OFF', color: '#D4A017', weight: 0.05, emoji: '🏆' },
             { label: '10% OFF', color: '#C0392B', weight: 0.15, emoji: '⭐' },
@@ -199,16 +198,22 @@
             { label: 'Double Spin!', color: '#D4A017', weight: 0.05, emoji: '💪' }
         ];
 
+        // ============================================================
+        // STATE
+        // ============================================================
         let currentRotation = 0.2;
         let isSpinning = false;
         let hasClaimed = false;
-        let currentPrize = null; // This will store the prize object {label, color, weight, emoji}
+        let currentPrize = null;
         let storeData = null;
+        let spinCount = 0;
         let animationId = null;
         let idleAnimationId = null;
         let isIdle = true;
 
-        // DOM Elements
+        // ============================================================
+        // DOM ELEMENTS
+        // ============================================================
         const canvas = document.getElementById('wheelCanvas');
         const ctx = canvas.getContext('2d');
         const spinBtn = document.getElementById('spinBtn');
@@ -228,14 +233,17 @@
         const againBtn = document.getElementById('againBtn');
 
         // ============================================================
-        // LOAD STORE & HELPER FUNCTIONS
+        // LOAD STORE
         // ============================================================
         async function loadStore() {
             try {
                 const pathParts = window.location.pathname.split('/');
                 const slug = pathParts[pathParts.length - 1] || 'stadium-gate';
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/stores?slug=eq.${slug}`, {
-                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
                 });
                 const data = await response.json();
                 if (data && data.length > 0) {
@@ -245,14 +253,23 @@
                         <div class="store-location"><i class="fas fa-map-pin"></i> ${storeData.location}</div>
                     `;
                 } else {
-                    storeInfo.innerHTML = `<div class="store-name">🏛️ Stadium Gate Shopping Mall</div><div class="store-location"><i class="fas fa-map-pin"></i> Ho, Ghana</div>`;
+                    storeInfo.innerHTML = `
+                        <div class="store-name">🏛️ Stadium Gate Shopping Mall</div>
+                        <div class="store-location"><i class="fas fa-map-pin"></i> Ho, Ghana</div>
+                    `;
                 }
             } catch (error) {
                 console.error('Error loading store:', error);
-                storeInfo.innerHTML = `<div class="store-name">🏛️ Stadium Gate Shopping Mall</div><div class="store-location"><i class="fas fa-map-pin"></i> Ho, Ghana</div>`;
+                storeInfo.innerHTML = `
+                    <div class="store-name">🏛️ Stadium Gate Shopping Mall</div>
+                    <div class="store-location"><i class="fas fa-map-pin"></i> Ho, Ghana</div>
+                `;
             }
         }
 
+        // ============================================================
+        // HELPERS
+        // ============================================================
         function loadSavedWhatsApp() {
             try {
                 const saved = localStorage.getItem('stadium_gate_whatsapp');
@@ -264,7 +281,7 @@
                         rememberMe.checked = true;
                     }
                 }
-            } catch (e) { /* ignore */ }
+            } catch (e) {}
         }
 
         function detectCountryCode() {
@@ -275,7 +292,7 @@
                 else if (tz.includes('Africa/Lagos')) code = '+234';
                 else if (tz.includes('Africa/Nairobi')) code = '+254';
                 else if (tz.includes('Africa/Johannesburg')) code = '+27';
-            } catch (e) { /* ignore */ }
+            } catch (e) {}
             countryCodePrefix.textContent = code;
         }
 
@@ -345,6 +362,7 @@
             ctx.strokeStyle = '#D4A017';
             ctx.lineWidth = 2.5;
             ctx.stroke();
+
             ctx.fillStyle = '#D4A017';
             ctx.font = 'bold 20px -apple-system, sans-serif';
             ctx.textAlign = 'center';
@@ -353,7 +371,7 @@
         }
 
         // ============================================================
-        // PRIZE SELECTION & SPIN LOGIC
+        // SELECT PRIZE
         // ============================================================
         function selectPrize() {
             const random = Math.random();
@@ -361,16 +379,19 @@
             for (const prize of PRIZES) {
                 cumulative += prize.weight;
                 if (random <= cumulative) {
-                    return { ...prize }; // Return a copy to avoid mutation issues
+                    return { ...prize };
                 }
             }
             return { ...PRIZES[PRIZES.length - 1] };
         }
 
-        // --- Idle Spin ---
+        // ============================================================
+        // IDLE SPIN
+        // ============================================================
         function startIdleSpin() {
             if (idleAnimationId) cancelAnimationFrame(idleAnimationId);
             isIdle = true;
+
             function idleAnimate() {
                 if (!isIdle) return;
                 currentRotation += 0.002;
@@ -388,24 +409,26 @@
             }
         }
 
-        // --- Main Spin Function ---
+        // ============================================================
+        // SPIN WHEEL - THE MAIN LOGIC
+        // ============================================================
         function spinWheel() {
             if (isSpinning || hasClaimed) return;
+
             stopIdleSpin();
 
             // 1. SELECT THE PRIZE FIRST
-            const selectedPrize = selectPrize();
-            currentPrize = selectedPrize; // Store the whole object
+            const selected = selectPrize();
+            currentPrize = selected;
 
             // 2. CALCULATE TARGET ROTATION
-            const segIndex = PRIZES.findIndex(p => p.label === selectedPrize.label);
+            const segIndex = PRIZES.findIndex(p => p.label === selected.label);
             const segAngle = (2 * Math.PI) / PRIZES.length;
             const targetAngle = segIndex * segAngle + segAngle / 2;
             const extraSpins = 5 + Math.random() * 4;
             const targetRotation = currentRotation + extraSpins * 2 * Math.PI +
                 (targetAngle - (currentRotation % (2 * Math.PI)));
 
-            // 3. START SPINNING
             isSpinning = true;
             spinBtn.disabled = true;
             spinBtn.innerHTML = '🔄 Spinning...';
@@ -422,7 +445,6 @@
                 animationId = null;
             }
 
-            // 4. ANIMATE
             function animate() {
                 const elapsed = Date.now() - startTime;
                 const progress = Math.min(elapsed / duration, 1);
@@ -435,20 +457,20 @@
                 if (progress < 1) {
                     animationId = requestAnimationFrame(animate);
                 } else {
-                    // 5. SPIN COMPLETE - USE THE STORED PRIZE
+                    // 3. SPIN COMPLETE - USE THE SAME SELECTED PRIZE
                     isSpinning = false;
                     spinBtn.disabled = false;
                     spinBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Spin Now';
 
-                    // --- UPDATE UI WITH THE CORRECT PRIZE ---
-                    const prizeLabel = currentPrize.label;
-                    const prizeEmoji = currentPrize.emoji;
+                    // 4. UPDATE UI WITH THE SELECTED PRIZE
+                    const prizeLabel = selected.label;
+                    const prizeEmoji = selected.emoji;
 
-                    // Update the result box
+                    // Update all display elements
                     prizeBadge.textContent = `${prizeEmoji} ${prizeLabel}`;
                     resultTitle.textContent = prizeLabel;
 
-                    // Update status
+                    // Status message
                     if (prizeLabel === 'Better Luck') {
                         statusText.innerHTML = '<i class="fas fa-circle"></i> Better Luck Next Time!';
                     } else {
@@ -466,10 +488,10 @@
                                 customerPhone.value = match[2];
                             }
                         }
-                    } catch (e) { /* ignore */ }
+                    } catch (e) {}
 
                     // Save spin to Supabase
-                    saveSpin(currentPrize);
+                    saveSpin(selected);
 
                     // Restart idle spin after 30 seconds
                     setTimeout(() => {
@@ -490,10 +512,15 @@
             try {
                 const storeSlug = window.location.pathname.split('/').pop() || 'stadium-gate';
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/stores?slug=eq.${storeSlug}`, {
-                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
                 });
+
                 const stores = await response.json();
                 if (!stores || stores.length === 0) return;
+
                 const storeId = stores[0].id;
 
                 await fetch(`${SUPABASE_URL}/rest/v1/spins`, {
@@ -510,6 +537,8 @@
                         is_win: prize.label !== 'Better Luck'
                     })
                 });
+
+                console.log('✅ Spin saved:', prize.label);
             } catch (error) {
                 console.error('Error saving spin:', error);
             }
@@ -522,29 +551,47 @@
             const phone = customerPhone.value.trim();
             const name = customerName.value.trim() || 'Customer';
 
-            if (!phone) { alert('📱 Please enter your WhatsApp number'); return; }
-            if (phone.length < 6) { alert('📱 Please enter a valid WhatsApp number (e.g., 24 123 4567)'); return; }
-            if (!currentPrize) { alert('⚠️ Please spin the wheel first!'); return; }
+            if (!phone) {
+                alert('📱 Please enter your WhatsApp number');
+                return;
+            }
+
+            if (phone.length < 6) {
+                alert('📱 Please enter a valid WhatsApp number (e.g., 24 123 4567)');
+                return;
+            }
+
+            if (!currentPrize) {
+                alert('⚠️ Please spin the wheel first!');
+                return;
+            }
 
             const fullNumber = countryCodePrefix.textContent + phone;
+
             if (rememberMe.checked) {
-                try { localStorage.setItem('stadium_gate_whatsapp', fullNumber); } catch (e) { /* ignore */ }
+                try {
+                    localStorage.setItem('stadium_gate_whatsapp', fullNumber);
+                } catch (e) {}
             }
 
             const code = 'SG-' + Date.now().toString(36).toUpperCase();
-            const prizeWon = currentPrize.label;
-            const storeName = storeData ? storeData.name : 'Stadium Gate Shopping Mall';
 
-            const message =
-                `🎉 Congratulations ${name}!\n\nYou won: ${prizeWon}\nYour code: ${code}\n\n✅ Show this at checkout.\n\n🏛️ ${storeName}\n📍 Ho, Ghana`;
-
-            // Show claimed state
             resultBox.classList.add('hidden');
             claimedBox.classList.remove('hidden');
             hasClaimed = true;
             stopIdleSpin();
 
+            const storeName = storeData ? storeData.name : 'Stadium Gate Shopping Mall';
+            const prizeWon = currentPrize.label;
+
+            const message =
+                `🎉 Congratulations ${name}!\n\nYou won: ${prizeWon}\nYour code: ${code}\n\n✅ Show this at checkout.\n\n🏛️ ${storeName}\n📍 Ho, Ghana`;
+
             claimedMessage.textContent = `🎉 ${name}, you won ${prizeWon}!`;
+
+            const waLink =
+                `https://wa.me/${fullNumber.replace('+', '')}?text=${encodeURIComponent(message)}`;
+
             whatsappStatus.textContent = '📱 Opening WhatsApp with your code...';
             whatsappStatus.style.display = 'block';
 
@@ -573,8 +620,6 @@
                 console.error('Error saving lead:', error);
             }
 
-            // Open WhatsApp
-            const waLink = `https://wa.me/${fullNumber.replace('+', '')}?text=${encodeURIComponent(message)}`;
             const win = window.open(waLink, '_blank');
 
             setTimeout(() => {
@@ -593,7 +638,7 @@
         }
 
         // ============================================================
-        // RESET GAME
+        // RESET
         // ============================================================
         function resetGame() {
             hasClaimed = false;
@@ -612,7 +657,7 @@
         }
 
         // ============================================================
-        // INITIALIZATION
+        // INIT
         // ============================================================
         async function init() {
             detectCountryCode();
@@ -626,10 +671,14 @@
             claimBtn.addEventListener('click', submitLead);
             againBtn.addEventListener('click', resetGame);
 
-            document.addEventListener('click', () => { if (isIdle) stopIdleSpin(); });
-            document.addEventListener('touchstart', () => { if (isIdle) stopIdleSpin(); });
+            document.addEventListener('click', () => {
+                if (isIdle) stopIdleSpin();
+            });
+            document.addEventListener('touchstart', () => {
+                if (isIdle) stopIdleSpin();
+            });
 
-            console.log('🎡 SPIN AFRICA - Stadium Gate Shopping Mall (Ho, Ghana) loaded!');
+            console.log('🎡 SPIN AFRICA loaded!');
         }
 
         document.addEventListener('DOMContentLoaded', init);
